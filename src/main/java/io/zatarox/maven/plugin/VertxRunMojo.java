@@ -88,6 +88,8 @@ public class VertxRunMojo extends AbstractMojo {
             final Vertx instance = Vertx.vertx();
             getLog().info("Launching verticle [" + verticleName + "]");
             instance.deployVerticle(verticleName);
+            
+            // No other way to prevent vert.x closing
             for (;;) {
                 System.in.read();
             }
