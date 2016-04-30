@@ -15,15 +15,16 @@ package org.vertx.maven.plugin;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.vertx.java.deploy.impl.cli.Starter;
-
 import java.util.List;
+import org.apache.log4j.Logger;
+import org.vertx.java.platform.impl.cli.Starter;
 
 public class VertxServer {
 
+    private static final Logger LOGGER = Logger.getLogger(VertxServer.class);
+
     private static final String VERTX_RUN_COMMAND = "run";
-    
+
     private static final String VERTX_RUNMOD_COMMAND = "runmod";
 
     private void run(final List<String> serverArgs, boolean daemon) {
@@ -34,27 +35,26 @@ public class VertxServer {
                 Starter.main(args);
             }
         }, "Vertx Manager Thread");
-        
+
         managerThread.start();
-        
+
         if (!daemon) {
             try {
                 managerThread.join();
             } catch (InterruptedException e) {
-                System.err.println("Unexpected thread interupt while waiting for vertx manager thread:");
-                e.printStackTrace();
+                LOGGER.error("Unexpected thread interupt while waiting for vertx manager thread:", e);
             }
         }
     }
-    
+
     public void runVerticle(final List<String> serverArgs, boolean daemon) {
         serverArgs.add(0, VERTX_RUN_COMMAND);
         this.run(serverArgs, daemon);
     }
-    
+
     public void runModule(final List<String> serverArgs, boolean daemon) {
         serverArgs.add(0, VERTX_RUNMOD_COMMAND);
         this.run(serverArgs, daemon);
     }
-    
+
 }
