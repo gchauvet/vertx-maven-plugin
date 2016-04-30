@@ -1,39 +1,25 @@
-vertx-maven-plugin
-==================
-
+#vertx-maven-plugin
 Maven Plugin for running verticles in their own vert.x instance.
 
-Install
------
-This plugin is now available on Maven Central.
-
+##Install
 Group ID: org.anacoders.plugins
-
 Artifact ID: vertx-maven-plugin
-
 Current release version: 2.0.0
 
 
-Versions
---------
-
+##Versions
 This plugin's versions require to include vertx-core (>= 3.0.0) to this plugin dendency (see below)
 
-Usage
------
+## Usage
 
 ### vertx:run
 
 This goal will run a verticle or vert.x module in it's own vert.x instance.  vert.x will continue to run until the plugin is explicitly stopped.  Simply type:
-
 ```sh
-	mvn vertx:run
+mvn vertx:run
 ```
 
-The plugin forks a parallel lifecycle to ensure that the "package" phase has been completed before invoking 
-vert.x. This means that you do not need to explicitly execute a "mvn package" first. It also means that a 
-"mvn clean vertx:run" will ensure that a full fresh compile and package is done before invoking vert.x.  
-	
+The plugin forks a parallel lifecycle to ensure that the "package" phase has been completed before invoking vert.x. This means that you do not need to explicitly execute a "mvn package" first. It also means that a "mvn clean vertx:run" will ensure that a full fresh compile and package is done before invoking vert.x.
 For Java verticles, the plugin will need to be configured in your project's POM as follows:
 
 ```xml
@@ -41,6 +27,13 @@ For Java verticles, the plugin will need to be configured in your project's POM 
 		<groupId>org.anacoders.plugins</groupId>
 		<artifactId>vertx-maven-plugin</artifactId>
 		<version>2.0.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.vertx</groupId>
+                        <artifactId>vertx-core</artifactId>
+                        <version>${vertx.version}</version>
+                    </dependency>
+                </dependencies>
 		<configuration>
 			<verticleName>com.acme.MyVerticle</verticleName>
 		</configuration>
@@ -52,6 +45,13 @@ For Groovy verticles, the plugin will need to be configured in your project's PO
 		<groupId>org.anacoders.plugins</groupId>
 		<artifactId>vertx-maven-plugin</artifactId>
 		<version>2.0.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.vertx</groupId>
+                        <artifactId>vertx-core</artifactId>
+                        <version>${vertx.version}</version>
+                    </dependency>
+                </dependencies>
 		<configuration>
 			<verticleName>com/acme/MyVerticle.groovy</verticleName>
 		</configuration>
@@ -63,6 +63,13 @@ For modules, the plugin will need to be configured in your project's POM as foll
 		<groupId>org.anacoders.plugins</groupId>
 		<artifactId>vertx-maven-plugin</artifactId>
 		<version>2.0.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.vertx</groupId>
+                        <artifactId>vertx-core</artifactId>
+                        <version>${vertx.version}</version>
+                    </dependency>
+                </dependencies>
 		<configuration>
 			<moduleName>some-module-name</moduleName>
 			<moduleRepoUrl>http://some.module.repo.url</moduleRepoUrl>
@@ -81,6 +88,13 @@ To do this you can run the plugin in Maven execution scenarios and use the daemo
 		<configuration>
 			<verticleName>com.acme.MyVerticle</verticleName>
 		</configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.vertx</groupId>
+                        <artifactId>vertx-core</artifactId>
+                        <version>${vertx.version}</version>
+                    </dependency>
+                </dependencies>
 		<executions>
 			<execution>
 				<id>instance1</id>
