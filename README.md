@@ -18,7 +18,7 @@ For Java verticles, the plugin will need to be configured in your project's POM 
 
 ```xml
 <plugin>
-    <groupId>org.anacoders.plugins</groupId>
+    <groupId>io.zatarox.maven.plugins</groupId>
     <artifactId>vertx-maven-plugin</artifactId>
     <version>2.0.0</version>
     <dependencies>
@@ -29,14 +29,14 @@ For Java verticles, the plugin will need to be configured in your project's POM 
         </dependency>
     </dependencies>
     <configuration>
-        <verticleName>com.acme.MyVerticle</verticleName>
+        <verticleName>com.test.MyVerticle</verticleName>
     </configuration>
 </plugin>  
 ```
 For Groovy verticles, the plugin will need to be configured in your project's POM as follows:
 ```xml
 <plugin>
-    <groupId>org.anacoders.plugins</groupId>
+    <groupId>io.zatarox.maven.plugins</groupId>
     <artifactId>vertx-maven-plugin</artifactId>
     <version>2.0.0</version>
     <dependencies>
@@ -47,7 +47,7 @@ For Groovy verticles, the plugin will need to be configured in your project's PO
         </dependency>
     </dependencies>
     <configuration>
-        <verticleName>com/acme/MyVerticle.groovy</verticleName>
+        <verticleName>com/test/MyVerticle.groovy</verticleName>
         </configuration>
 </plugin>  
 ```
