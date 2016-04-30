@@ -1,4 +1,4 @@
-package org.vertx.maven.plugin;
+package io.zatarox.maven.plugin;
 
 /*
  * Copyright 2001-2005 The Apache Software Foundation.
