@@ -106,8 +106,9 @@
         <!-- vertx dependencies -->
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-platform</artifactId>
-            <version>2.1.6</version>
+            <artifactId>vertx-core</artifactId>
+            <version>3.2.1</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>

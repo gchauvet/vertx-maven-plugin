@@ -159,30 +159,8 @@ public class VertxRunMojo extends AbstractMojo {
      */
     private String classpath;
 
-    /**
-     * <p>
-     * The home directory of your vert.x installation i.e. where you unzipped
-     * the vert.x distro. For example C:/vert.x/vert.x-1.0.1.final
-     * </p>
-     * <p>
-     * You will need to set this configuration option if you want to run any
-     * out-of-the box modules like web-server.
-     * </p>
-     *
-     * @parameter expression="${run.vertxHomeDirectory}"
-     */
-    private String vertxHomeDirectory;
-
     @Override
     public void execute() throws MojoExecutionException {
-
-        if (vertxHomeDirectory != null) {
-            System.setProperty(VERTX_INSTALL_SYSTEM_PROPERTY,
-                    vertxHomeDirectory);
-            System.setProperty(VERTX_MODS_SYSTEM_PROPERTY, vertxHomeDirectory
-                    + "/mods");
-            getLog().info("Vert.X home: " + vertxHomeDirectory);
-        }
 
         List<String> args = new ArrayList<>();
         boolean isModule = false;

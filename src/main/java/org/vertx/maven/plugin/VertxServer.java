@@ -15,13 +15,14 @@ package org.vertx.maven.plugin;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import io.vertx.core.Launcher;
 import java.util.List;
-import org.apache.log4j.Logger;
-import org.vertx.java.platform.impl.cli.Starter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class VertxServer {
 
-    private static final Logger LOGGER = Logger.getLogger(VertxServer.class);
+    private static final Logger LOGGER = Logger.getLogger(VertxServer.class.getSimpleName());
 
     private static final String VERTX_RUN_COMMAND = "run";
 
@@ -32,7 +33,7 @@ public class VertxServer {
             @Override
             public void run() {
                 final String[] args = serverArgs.toArray(new String[serverArgs.size()]);
-                Starter.main(args);
+                Launcher.main(args);
             }
         }, "Vertx Manager Thread");
 
@@ -42,7 +43,7 @@ public class VertxServer {
             try {
                 managerThread.join();
             } catch (InterruptedException e) {
-                LOGGER.error("Unexpected thread interupt while waiting for vertx manager thread:", e);
+                LOGGER.log(Level.SEVERE, "Unexpected thread interupt while waiting for vertx manager thread:", e);
             }
         }
     }
