@@ -15,9 +15,17 @@ package org.vertx.maven.plugin;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import io.vertx.core.Vertx;
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -43,12 +51,6 @@ import org.apache.maven.project.MavenProject;
  */
 public class VertxRunMojo extends AbstractMojo {
 
-    private static final String CP_SEPARATOR = System.getProperty("os.name").startsWith("Windows") ? ";" : ":";
-
-    private static final String VERTX_INSTALL_SYSTEM_PROPERTY = "vertx.install";
-
-    private static final String VERTX_MODS_SYSTEM_PROPERTY = "vertx.mods";
-
     /**
      * The Maven project.
      *
@@ -71,189 +73,32 @@ public class VertxRunMojo extends AbstractMojo {
      */
     private String verticleName;
 
-    /**
-     * The name of the module to run.
-     *
-     * If you're running a module, it's the name of the module to be run.
-     *
-     * @parameter expression="${run.moduleName}"
-     */
-    private String moduleName;
-
-    /**
-     * The host on which to run the cluster. If this is not specified, then the
-     * cluster mode will not be activated.
-     *
-     * @parameter expression="${run.clusterHost}"
-     */
-    private String clusterHost;
-
-    /**
-     * The cluster port to use, if not specified the vertx default is used.
-     *
-     * @parameter expression="${run.clusterPost}"
-     */
-    private int clusterPort = -1;
-
-    /**
-     * Determines whether the verticle is a worker verticle or not. The default
-     * is false.
-     *
-     * @parameter expression="${run.worker}" default-value=false
-     */
-    private boolean worker;
-
-    /**
-     * <p>
-     * Determines whether or not the server blocks when started. The default
-     * behaviour (daemon = false) will cause the server to pause other processes
-     * while it continues to run the verticle. This is useful when starting the
-     * server with the intent to work with it interactively.
-     * </p>
-     * <p>
-     * Often, it is desirable to let the server start and continue running
-     * subsequent processes in an automated build environment. This can be
-     * facilitated by setting daemon to true.
-     * </p>
-     *
-     * @parameter expression="${run.daemon}" default-value=false
-     */
-    private boolean daemon;
-
-    /**
-     * <p>
-     * The config file for this verticle.
-     * </p>
-     * <p>
-     * If the path is relative (does not start with / or a drive letter like
-     * C:), the path is relative to the directory containing the POM.
-     * </p>
-     * <p>
-     * An example value would be src/main/resources/com/acme/MyVerticle.conf
-     * </p>
-     *
-     * @parameter expression="${run.configFile}"
-     */
-    private File configFile;
-
-    /**
-     * The number of instances of the verticle to instantiate in the vert.x
-     * server. The default is 1.
-     *
-     * @parameter expression="${run.instances}" default-value=1
-     */
-    private Integer instances;
-
-    /**
-     * <p>
-     * The path on which to search for the main and any other resources used by
-     * the verticle.
-     * </p>
-     * <p>
-     * If your verticle references other scripts, classes or other resources
-     * (e.g. jar files) then make sure these are on this path. The path can
-     * contain multiple path entries separated by : (colon).
-     * </p>
-     *
-     * @parameter expression="${run.classpath}"
-     */
-    private String classpath;
-
     @Override
     public void execute() throws MojoExecutionException {
+        try {
+            final Set<URL> urls = new HashSet<>();
+            final List<String> elements = mavenProject.getTestClasspathElements();
+            for (String element : elements) {
+                urls.add(new File(element).toURI().toURL());
+            }
 
-        List<String> args = new ArrayList<>();
-        boolean isModule = false;
+            final ClassLoader contextClassLoader = URLClassLoader.newInstance(
+                    urls.toArray(new URL[0]),
+                    Thread.currentThread().getContextClassLoader());
 
-        if (moduleName != null) {
-            getLog().info("Launching module [" + moduleName + "]");
-            args.add(moduleName);
-            isModule = true;
-        } else if (verticleName != null) {
+            Thread.currentThread().setContextClassLoader(contextClassLoader);
+
+            final Vertx instance = Vertx.vertx();
             getLog().info("Launching verticle [" + verticleName + "]");
-            args.add(verticleName);
-            args.add("-cp");
-            args.add(getFullClasspath());
-        } else {
-            throw new MojoExecutionException(
-                    "You have to specify either verticleName or moduleName parameter.");
-        }
-
-        if (worker) {
-            args.add("-worker");
-        }
-
-        if (configFile != null) {
-            args.add("-conf");
-            args.add(configFile.getAbsolutePath());
-        }
-
-        if (clusterHost != null) {
-            args.add("-cluster");
-            args.add("-cluster-host");
-            args.add(clusterHost);
-            if (clusterPort > 0) {
-                args.add("-cluster-port");
-                args.add(Integer.toString(clusterPort));
+            instance.deployVerticle(verticleName);
+            for(;;) {
+                System.in.read();
             }
+            
+        } catch (DependencyResolutionRequiredException | MalformedURLException e) {
+            throw new MojoExecutionException("Error when loading project classpath", e);
+        } catch (IOException ex) {
+            Logger.getLogger(VertxRunMojo.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        args.add("-instances");
-        args.add(instances.toString());
-
-        if (isModule) {
-            new VertxServer().runModule(args, daemon);
-        } else {
-            new VertxServer().runVerticle(args, daemon);
-        }
-    }
-
-    /**
-     * @return classpath including Maven dependencies
-     * @throws MojoExecutionException
-     */
-    private String getFullClasspath() throws MojoExecutionException {
-        StringBuilder classpathBuilder = new StringBuilder(
-                getDefaultClasspathString());
-        if (classpath != null) {
-            classpathBuilder.append(CP_SEPARATOR).append(classpath);
-        }
-	try {
-            @SuppressWarnings("unchecked")
-            List<String> runtimeClasspathElements = mavenProject.getRuntimeClasspathElements();
-            for (String element : runtimeClasspathElements) {
-                classpathBuilder.append(CP_SEPARATOR).append(element);
-            }
-	} catch (DependencyResolutionRequiredException e) {
-            throw new MojoExecutionException("Could not list runtime classpath elements");
-	}
-
-        String fullClasspath = classpathBuilder.toString();
-
-        getLog().debug("Full classpath [" + fullClasspath + "]");
-
-        return fullClasspath;
-    }
-
-    /**
-     * Build a default classpath.
-     *
-     * If the packaging of the Maven project is jar then add the path of the
-     * compiled jar file to the default classpath.
-     *
-     * @return default classpath
-     */
-    private String getDefaultClasspathString() {
-        String defaultClasspath = ".";
-
-        if (mavenProject.getPackaging().toUpperCase().equals("JAR")) {
-            defaultClasspath += CP_SEPARATOR
-                    + mavenProject.getBuild().getDirectory().replace("\\", "/")
-                    + "/" + mavenProject.getBuild().getFinalName() + "."
-                    + mavenProject.getPackaging();
-        }
-
-        getLog().debug("Default classpath [" + defaultClasspath + "]");
-        return defaultClasspath;
     }
 }
