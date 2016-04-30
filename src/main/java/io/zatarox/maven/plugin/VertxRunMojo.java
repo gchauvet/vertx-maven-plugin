@@ -18,14 +18,11 @@ package io.zatarox.maven.plugin;
 import io.vertx.core.Vertx;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -91,14 +88,12 @@ public class VertxRunMojo extends AbstractMojo {
             final Vertx instance = Vertx.vertx();
             getLog().info("Launching verticle [" + verticleName + "]");
             instance.deployVerticle(verticleName);
-            for(;;) {
+            for (;;) {
                 System.in.read();
             }
-            
-        } catch (DependencyResolutionRequiredException | MalformedURLException e) {
+
+        } catch (IOException | DependencyResolutionRequiredException e) {
             throw new MojoExecutionException("Error when loading project classpath", e);
-        } catch (IOException ex) {
-            Logger.getLogger(VertxRunMojo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
